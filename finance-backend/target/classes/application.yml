@@ -4,9 +4,9 @@ spring:
   
   # PostgreSQL Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/ledgerflow
-    username: postgres
-    password: dbforfree
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ledgerflow}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:default_password}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -18,6 +18,10 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
+
+app:
+  jwtSecret: ${JWT_SECRET:f97f7481a7b45873e3b3208753a47926b4843b0c5b3644f8f4843b0c5b3644f8}
+  jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
 
 server:
   port: 8080

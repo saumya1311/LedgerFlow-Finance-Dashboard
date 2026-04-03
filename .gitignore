@@ -1,0 +1,26 @@
+# Root ignore file
+# Build artifacts
+**/.next/
+**/node_modules/
+**/target/
+**/build/
+**.log
+**.tmp
+
+# Environment Files
+**.env
+**.env.local
+**.env.development.local
+**.env.test.local
+**.env.production.local
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets
+**/application-local.yml
+**/application-secrets.yml
+**/application-dev.yml

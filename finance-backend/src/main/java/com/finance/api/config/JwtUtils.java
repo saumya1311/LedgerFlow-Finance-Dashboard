@@ -17,10 +17,10 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    @Value("${app.jwtSecret:f97f7481a7b45873e3b3208753a47926b4843b0c5b3644f8f4843b0c5b3644f8}")
+    @Value("${app.jwtSecret}")
     private String jwtSecret;
 
-    @Value("${app.jwtExpirationMs:86400000}")
+    @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication, Long userId, String role) {

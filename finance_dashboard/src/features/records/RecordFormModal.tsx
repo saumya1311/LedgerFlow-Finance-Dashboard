@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Omit<FinanceRecord, 'id'> & { id?: string }) => void;
+  onSubmit: (data: Omit<FinanceRecord, 'id'> & { id?: FinanceRecord['id'] }) => void;
   initialData?: FinanceRecord | null;
 }
 

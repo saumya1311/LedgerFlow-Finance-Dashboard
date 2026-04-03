@@ -61,7 +61,7 @@ export default function RecordsPage() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (data: Omit<FinanceRecord, 'id'> & { id?: string }) => {
+  const handleSubmit = async (data: Omit<FinanceRecord, 'id'> & { id?: FinanceRecord['id'] }) => {
     if (!currentUser) return;
     try {
       if (data.id) {

@@ -20,7 +20,7 @@ spring:
     defer-datasource-initialization: true
 
 app:
-  jwtSecret: ${JWT_SECRET:f97f7481a7b45873e3b3208753a47926b4843b0c5b3644f8f4843b0c5b3644f8}
+  jwtSecret: ${JWT_SECRET}
   jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
 
 server:

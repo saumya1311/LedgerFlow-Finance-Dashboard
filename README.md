@@ -77,6 +77,12 @@ Base URL: `http://localhost:8080/api`
 
 ---
 
+## Health Check
+
+- `GET /actuator/health` - Health endpoint for container orchestration/readiness checks
+
+---
+
 ## Access Control (Backend-Enforced)
 
 Roles:
@@ -186,16 +192,24 @@ Create/update `finance-backend/src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ledgerflow
-    username: ${DB_USERNAME:YOUR_DB_USERNAME}
-    password: ${DB_PASSWORD:YOUR_DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: update
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
-jwt:
-  secret: ${JWT_SECRET:YOUR_JWT_SECRET}
+app:
+  jwtSecret: ${JWT_SECRET}
+
+server:
+  port: ${PORT:8080}
 ```
+
+Required environment variables:
+
+- `SPRING_DATASOURCE_URL` (example: `jdbc:postgresql://localhost:5432/ledgerflow`)
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `JWT_SECRET`
+- `PORT` (optional; defaults to `8080`)
 
 Run backend:
 
@@ -218,6 +232,29 @@ Run frontend:
 cd finance_dashboard
 npm install
 npm run dev
+```
+
+---
+
+## Docker Setup
+
+Build backend image:
+
+```bash
+cd finance-backend
+docker build -t ledgerflow-backend .
+```
+
+Run backend container:
+
+```bash
+docker run -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:5432/<database> \
+  -e DB_USERNAME=<db_username> \
+  -e DB_PASSWORD=<db_password> \
+  -e JWT_SECRET=<jwt_secret> \
+  -e PORT=8080 \
+  ledgerflow-backend
 ```
 
 ---

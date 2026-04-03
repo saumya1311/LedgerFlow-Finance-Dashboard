@@ -112,14 +112,6 @@ npm run dev
 
 ---
 
-## 🛡️ Security & Privacy Recommendations
-When deploying to a public repository:
-1.  **Ignore Secrets**: Ensure `.env.local` and sensitive `application.yml` files are in your `.gitignore`.
-2.  **Environment Variables**: Use environment variables (`${VARIABLE_NAME}`) in your config files rather than hardcoding values.
-3.  **JWT Secret**: Use a cryptographically strong string for your `jwt.secret`.
-
----
-
 ## 📜 License
 This project is open-source and intended for portfolio demonstration and educational use.
 

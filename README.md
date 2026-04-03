@@ -1,97 +1,219 @@
-# 📊 LedgerFlow — Ultimate Finance Dashboard
+# LedgerFlow
 
-> **A high-performance, full-stack finance management system.** Built with a focus on security, scalability, and premium user experience, LedgerFlow provides organizations with a robust toolkit for tracking financial health through Role-Based Access Control (RBAC) and real-time analytics.
+Full-stack finance dashboard focused on secure API design, role-based access control, and maintainable backend architecture.
 
-[![Frontend](https://img.shields.io/badge/Frontend-Next.js_16-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
-[![Backend](https://img.shields.io/badge/Backend-Spring_Boot_3.2-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![Frontend](https://img.shields.io/badge/Frontend-Next.js-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
+[![Backend](https://img.shields.io/badge/Backend-Spring_Boot-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
-[![Styling](https://img.shields.io/badge/Styling-Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
-[![Security](https://img.shields.io/badge/Security-JWT_Auth-orange?style=for-the-badge)](https://jwt.io/)
+[![Auth](https://img.shields.io/badge/Auth-JWT-orange?style=for-the-badge)](https://jwt.io/)
 
 ---
 
-## 🎯 Project Vision
-LedgerFlow is designed to bridge the gap between simple expense tracking and complex enterprise financial auditing. It offers a **decoupled architecture**, ensuring the frontend can be scaled independently of the high-concurrency backend.
+## Overview
 
----
+LedgerFlow provides:
 
-## 🚀 What's Inside? (The "What")
+- JWT-based authentication with stateless session handling
+- Backend-enforced RBAC (`ADMIN`, `ANALYST`, `VIEWER`)
+- Transaction lifecycle management with soft delete semantics
+- Filtered and paginated querying via JPA Specification
+- Dashboard-level financial aggregation for reporting
 
-### 🔐 Multi-Tier Security
-*   **JWT Stateless Auth**: Secure sessions without server-side state.
-*   **RBAC Enforcement**: Strict access control at both UI (navigation/actions) and API (endpoint protection) layers.
-*   **Bcrypt Hashing**: Industry-standard password security.
+The repository contains:
 
-### 📈 Intelligent Analytics
-*   **Dynamic Visualizations**: Integrated **Recharts** for monthly trends and categorical breakdowns.
-*   **Real-time Aggregations**: Instant calculation of Balance, Income, and Expenses.
-*   **CSV Auditor**: Export all transaction history for external accounting.
-
-### 🛠️ Advanced Record Management
-*   **Server-Side Logic**: High-performance filtering, searching, and pagination powered by Spring Data Specification.
-*   **Soft Deletes**: Data integrity maintained through logical deletion.
-*   **Audit Logging**: Automatic `createdAt` and `updatedAt` tracking for every entry.
-
----
-
-## 🏗️ Technical Architecture (The "Where")
-
-### Directory Structure
 ```text
 .
-├── finance_dashboard/         # Next.js 16 + React 19 Frontend
-│   ├── src/app/               # App Router & Route Groups
-│   ├── src/components/        # UI Atomic Components
-│   ├── src/features/          # Logic-heavy functional modules
-│   ├── src/services/          # API Integration Layer
-│   └── src/store/             # Zustand State Management
-│
-└── finance-backend/           # Java 17 + Spring Boot 3.2 Backend
-    ├── src/main/java/.../     # REST API Architecture
-    │   ├── controller/        # Entry points & @PreAuthorize guards
-    │   ├── service/           # Business logic & Calculations
-    │   ├── model/             # JPA Entities (PostgreSQL Mapping)
-    │   └── config/            # Security & JWT Configuration
-    └── src/main/resources/    # Configuration (application.yml)
+├── finance_dashboard/    # Next.js frontend
+└── finance-backend/      # Spring Boot REST API
 ```
 
 ---
 
-## ⚙️ Setup Instructions (The "How")
+## Backend Architecture
 
-### 1. Database Setup (PostgreSQL)
-Ensure you have a PostgreSQL instance running. Create a database named `ledgerflow`.
+`finance-backend` follows a layered architecture:
+
+- **Controller Layer**: HTTP entry points, request mapping, authorization annotations
+- **Service Layer**: business rules, access validation, aggregation logic
+- **Repository Layer**: JPA repositories + query methods/specifications
+- **Model Layer**: entities and enums mapped to PostgreSQL
+- **Security Layer**: JWT filter chain, stateless auth, method-level guards
+
+### Logical Data Flow
+
+1. Request enters controller (`/api/**`)
+2. JWT filter validates token and populates security context
+3. Controller delegates to service
+4. Service enforces domain rules and role constraints
+5. Repository executes DB operations
+6. DTO response returned with proper HTTP status
+
+---
+
+## API Endpoints
+
+Base URL: `http://localhost:8080/api`
+
+### Auth
+
+- `POST /auth/login` - Authenticate user and return JWT + user payload
+- `POST /auth/register` - Register a new user (default role: `VIEWER`) and return auth payload
+
+### Users
+
+- `GET /users` - List all users (admin only)
+- `PUT /users/{id}/role` - Update a user's role (admin only)
+
+### Transactions
+
+- `GET /records` - List records with pagination and optional filters (`type`, `category`)
+- `POST /records` - Create a record (admin only)
+- `PUT /records/{id}` - Update a record (admin only)
+- `DELETE /records/{id}` - Soft delete a record (admin only)
+
+### Dashboard
+
+- `GET /dashboard/stats` - Return aggregated totals (`totalIncome`, `totalExpenses`, `netBalance`) with optional date range (`from`, `to`)
+
+---
+
+## Access Control (Backend-Enforced)
+
+Roles:
+
+- `ADMIN`: full access, including user role management and record mutation
+- `ANALYST`: authenticated read access to records and dashboard data
+- `VIEWER`: authenticated read access to dashboard/records; write operations blocked
+
+Enforcement points:
+
+- Endpoint-level restrictions via `@PreAuthorize` on protected controllers
+- Method-level role checks in service logic (defense in depth)
+- Spring Security default rule: all non-auth routes require authenticated JWT
+
+---
+
+## Validation & Error Handling
+
+### Input Validation
+
+Validation is applied using Jakarta Bean Validation (`@Valid`) on request DTOs:
+
+- Auth: email format, required password, field length constraints
+- Records: required title, amount, type, category, and date
+- Invalid payloads are rejected before business logic executes
+
+### Error Handling Strategy
+
+Centralized with `@ControllerAdvice`:
+
+- `MethodArgumentNotValidException` -> structured validation error map
+- `ResourceNotFoundException` -> `404 Not Found`
+- `UnauthorizedAccessException` -> `403 Forbidden`
+- Unhandled exceptions -> `500 Internal Server Error`
+
+### HTTP Status Usage
+
+- `200 OK` for successful reads/updates
+- `201 Created` for resource creation
+- `204 No Content` for successful soft deletion
+- `400 Bad Request` for malformed input/invalid role values
+- `401 Unauthorized` for missing/invalid token at security boundary
+- `403 Forbidden` for authenticated users lacking permissions
+- `404 Not Found` for missing resources
+
+---
+
+## Database Schema Overview
+
+Core tables:
+
+- **`users`**
+  - `id` (PK)
+  - `name`
+  - `email` (unique)
+  - `password` (bcrypt hash)
+  - `role` (`ADMIN | ANALYST | VIEWER`)
+  - `created_at`, `updated_at`
+
+- **`records`**
+  - `id` (PK)
+  - `title`
+  - `amount`
+  - `type` (`INCOME | EXPENSE`)
+  - `category`
+  - `date`
+  - `user_id` (FK -> `users.id`)
+  - `deleted` (soft delete flag)
+  - `created_at`, `updated_at`
+
+Relationship:
+
+- One `user` to many `records`
+
+---
+
+## Design Decisions
+
+- **JWT Authentication**: keeps API stateless and horizontally scalable; avoids server session storage
+- **RBAC**: separates privileges by responsibility, reducing accidental or unauthorized mutations
+- **Soft Deletes**: preserves auditability and historical integrity while excluding deleted rows from active reads
+- **Specification-based Querying**: enables composable filtering and pagination without endpoint proliferation
+
+---
+
+## Local Setup
+
+### 1) Prerequisites
+
+- Java 17+
+- Maven (or Maven Wrapper)
+- Node.js 18+
+- PostgreSQL 14+
+
+### 2) Database
+
+Create database:
+
 ```sql
 CREATE DATABASE ledgerflow;
 ```
 
-### 2. Backend Configuration
-Navigate to `finance-backend/src/main/resources/`. Create or update `application.yml`:
-**⚠️ IMPORTANT:** Never commit your production credentials.
+### 3) Backend Configuration
+
+Create/update `finance-backend/src/main/resources/application.yml`:
+
 ```yaml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/ledgerflow
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:your_password_here}
+    username: ${DB_USERNAME:YOUR_DB_USERNAME}
+    password: ${DB_PASSWORD:YOUR_DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
+
 jwt:
-  secret: ${JWT_SECRET:your_32_character_secret_here}
+  secret: ${JWT_SECRET:YOUR_JWT_SECRET}
 ```
-**To run:**
+
+Run backend:
+
 ```bash
 cd finance-backend
 ./mvnw spring-boot:run
 ```
 
-### 3. Frontend Configuration
-Navigate to `finance_dashboard/`. Create a `.env.local` file:
+### 4) Frontend Configuration
+
+Create `finance_dashboard/.env.local`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
-**To run:**
+
+Run frontend:
+
 ```bash
 cd finance_dashboard
 npm install
@@ -100,31 +222,37 @@ npm run dev
 
 ---
 
-## 👥 Role Permissions Matrix
+## Security Notes (Read Before Deploying)
 
-| Feature | Admin | Analyst | Viewer |
-| :--- | :---: | :---: | :---: |
-| Dashboard Analytics | ✅ | ✅ | ✅ |
-| View All Records | ✅ | ✅ | ❌ |
-| Manage Transactions (CRUD) | ✅ | ❌ | ❌ |
-| User Role Management | ✅ | ❌ | ❌ |
-| Settings Access | ✅ | ✅ | ❌ |
+- Never commit `.env*`, production `application.yml`, or any secret-bearing file
+- Never hardcode credentials, JWT secrets, or tokens in source code
+- Use strong, rotated secrets in environment variables or a secret manager
+- Use placeholders in docs/examples only (`YOUR_DB_PASSWORD`, `YOUR_JWT_SECRET`)
+- Treat JWT secrets and DB credentials as sensitive production assets
 
 ---
 
-## 🛡️ Security & Privacy Recommendations
-When deploying to a public repository:
-1.  **Ignore Secrets**: Ensure `.env.local` and sensitive `application.yml` files are in your `.gitignore`.
-2.  **Environment Variables**: Use environment variables (`${VARIABLE_NAME}`) in your config files rather than hardcoding values.
-3.  **JWT Secret**: Use a cryptographically strong string for your `jwt.secret`.
+## Screenshots
+
+Add UI screenshots here when available:
+
+- `docs/screenshots/dashboard-overview.png`
+- `docs/screenshots/records-table.png`
+- `docs/screenshots/role-management.png`
 
 ---
 
-## 📜 License
-This project is open-source and intended for portfolio demonstration and educational use.
+## Future Improvements
+
+- Refresh token flow with token revocation and device/session tracking
+- OpenAPI/Swagger documentation with request/response examples
+- Database migrations via Flyway for controlled schema evolution
+- Fine-grained authorization policies (resource-level permissions)
+- Observability stack (structured logs, metrics, tracing, alerting)
+- Automated integration and security testing in CI pipeline
 
 ---
 
-<p align="center">
-  <strong>LedgerFlow</strong> — Engineering Financial Clarity.
-</p>
+## License
+
+This project is intended for portfolio demonstration and technical evaluation.

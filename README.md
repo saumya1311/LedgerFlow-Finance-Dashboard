@@ -1,4 +1,6 @@
 # LedgerFlow
+<img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/9d5c7de9-c111-4981-a92d-e248b1de060a" />
+<img width="1902" height="872" alt="Screenshot 2026-04-05 004718" src="https://github.com/user-attachments/assets/34f0c31c-5c09-4c04-bbd3-0d457e8bbf43" />
 
 Full-stack finance dashboard focused on secure API design, role-based access control, and maintainable backend architecture.
 
@@ -266,16 +268,6 @@ docker run -p 8080:8080 \
 - Use strong, rotated secrets in environment variables or a secret manager
 - Use placeholders in docs/examples only (`YOUR_DB_PASSWORD`, `YOUR_JWT_SECRET`)
 - Treat JWT secrets and DB credentials as sensitive production assets
-
----
-
-## Screenshots
-
-Add UI screenshots here when available:
-
-- `docs/screenshots/dashboard-overview.png`
-- `docs/screenshots/records-table.png`
-- `docs/screenshots/role-management.png`
 
 ---
 
